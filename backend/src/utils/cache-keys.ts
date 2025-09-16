@@ -19,9 +19,25 @@ export const CACHE_KEYS = {
   CONTENT_RECOMMENDATIONS: (type: 'movie' | 'tv', id: number) => `recommendations:${type}:${id}`,
 
   // Search
-  SEARCH_RESULTS: (query: string, filtersHash: string, page: number) => 
-    `search:${encodeURIComponent(query)}:${filtersHash}:page:${page}`,
-  SEARCH_SUGGESTIONS: (query: string) => `search:suggestions:${encodeURIComponent(query)}`,
+  SEARCH_RESULTS: (query: string, filters: any) => {
+    const filtersHash = CacheKeyUtils.hashFilters(filters || {});
+    return `search:${encodeURIComponent(query)}:${filtersHash}`;
+  },
+  SEARCH_MOVIES: (query: string, filters: any) => {
+    const filtersHash = CacheKeyUtils.hashFilters(filters || {});
+    return `search:movies:${encodeURIComponent(query)}:${filtersHash}`;
+  },
+  SEARCH_TV: (query: string, filters: any) => {
+    const filtersHash = CacheKeyUtils.hashFilters(filters || {});
+    return `search:tv:${encodeURIComponent(query)}:${filtersHash}`;
+  },
+  ADVANCED_SEARCH: (query: string, filters: any, page: number) => {
+    const filtersHash = CacheKeyUtils.hashFilters(filters || {});
+    return `search:advanced:${encodeURIComponent(query)}:${filtersHash}:page:${page}`;
+  },
+  SEARCH_SUGGESTIONS: (query: string, limit: number) => 
+    `search:suggestions:${encodeURIComponent(query)}:limit:${limit}`,
+  POPULAR_QUERIES: (limit: number) => `search:popular-queries:limit:${limit}`,
 
   // Streaming
   STREAM_SOURCES: (type: 'movie' | 'tv', id: number) => `streams:${type}:${id}`,
@@ -59,6 +75,7 @@ export const CACHE_TTL = {
   // Search - medium TTL
   SEARCH_RESULTS: config.cache.ttl.searchResults,  // 30 minutes
   SEARCH_SUGGESTIONS: 1800,                         // 30 minutes
+  POPULAR_QUERIES: 3600,                            // 1 hour
 
   // Streaming - short TTL for dynamic content
   STREAM_SOURCES: config.cache.ttl.streamSources,  // 5 minutes

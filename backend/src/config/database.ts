@@ -9,6 +9,9 @@ export const prisma = new PrismaClient({
     },
   },
   log: config.nodeEnv === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  // Add missing configuration options
+  errorFormat: 'pretty',
+  // Disable tracing for now to avoid the error
 });
 
 // Database connection utility

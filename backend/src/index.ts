@@ -96,8 +96,9 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// API routes will be added here
-// app.use('/api', routes);
+// API routes
+import routes from '@/routes/index.js';
+app.use('/api', routes);
 
 // 404 handler
 app.use('*', (req, res) => {

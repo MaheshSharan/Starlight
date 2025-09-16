@@ -1,9 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
 
-export interface AppError extends Error {
-  statusCode?: number;
-  type?: string;
-  details?: any;
+export class AppError extends Error {
+  public statusCode: number;
+  public type: string;
+  public details?: any;
+
+  constructor(
+    type: string,
+    message: string,
+    statusCode: number = 500,
+    details?: any
+  ) {
+    super(message);
+    this.name = 'AppError';
+    this.type = type;
+    this.statusCode = statusCode;
+    this.details = details;
+
+    // Maintains proper stack trace for where our error was thrown
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
 
 export interface ErrorResponse {

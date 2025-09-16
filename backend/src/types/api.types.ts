@@ -7,6 +7,11 @@ export interface APIResponse<T = any> {
     totalPages?: number;
     totalResults?: number;
     limit?: number;
+    query?: string;
+    filters?: any;
+    count?: number;
+    contentType?: string;
+    contentId?: number;
   };
   error?: {
     type: string;

@@ -66,18 +66,17 @@ export class CacheRepository {
   }
 
   // Search Cache
-  async getSearchResults(query: string, filtersHash: string, page: number): Promise<CachedSearchResult | null> {
-    const key = CACHE_KEYS.SEARCH_RESULTS(query, filtersHash, page);
+  async getSearchResults(query: string, filters: any): Promise<CachedSearchResult | null> {
+    const key = CACHE_KEYS.SEARCH_RESULTS(query, filters);
     return await cacheService.getWithOptions<CachedSearchResult>(key);
   }
 
   async setSearchResults(
     query: string, 
-    filtersHash: string, 
-    page: number, 
+    filters: any, 
     results: CachedSearchResult
   ): Promise<boolean> {
-    const key = CACHE_KEYS.SEARCH_RESULTS(query, filtersHash, page);
+    const key = CACHE_KEYS.SEARCH_RESULTS(query, filters);
     return await cacheService.setWithOptions(key, results, { ttl: CACHE_TTL.SEARCH_RESULTS });
   }
 
