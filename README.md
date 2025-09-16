@@ -44,26 +44,20 @@ Starlight provides content discovery, streaming capabilities, and a responsive v
 
 ### Prerequisites
 
-* Node.js 18+ and npm 9+
 * Docker and Docker Compose
 * TMDB API key (get one at [TMDB](https://www.themoviedb.org/settings/api))
+* Node.js 18+ and npm 9+ (optional, for local development without Docker)
 
-### Installation
+### Docker Setup (Recommended)
 
 1. **Clone the repository**
 
    ```bash
    git clone https://github.com/MaheshSharan/Starlight
-   cd starlight-streaming-platform
+   cd starlight
    ```
 
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
+2. **Set up environment variables**
 
    ```bash
    cp .env.example .env
@@ -73,44 +67,80 @@ Starlight provides content discovery, streaming capabilities, and a responsive v
 
    Edit the `.env` files and add your TMDB API key.
 
-4. **Start the development environment**
+3. **Start the application with Docker**
 
    ```bash
-   npm run docker:up
+   docker-compose up
    ```
 
-   This will start:
+   This will automatically:
+   * Build and start PostgreSQL database on port 5432
+   * Build and start Redis cache on port 6379
+   * Build and start Backend API on port 3001
+   * Build and start Frontend app on port 3000
+   * Handle all database migrations and setup
 
-   * PostgreSQL database on port 5432
-   * Redis cache on port 6379
-   * Backend API on port 3001
-   * Frontend app on port 3000
+4. **Access the application**
 
-5. **Initialize the database**
+   * Frontend: [http://localhost:3000](http://localhost:3000)
+   * Backend API: [http://localhost:3001](http://localhost:3001)
+   * Health Check: [http://localhost:3001/health](http://localhost:3001/health)
+
+### Local Development Setup (Alternative)
+
+If you prefer to run without Docker:
+
+1. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+2. **Start PostgreSQL and Redis locally** (or use Docker for just the databases)
+
+   ```bash
+   docker-compose up postgres redis
+   ```
+
+3. **Initialize the database**
 
    ```bash
    npm run dev:backend -- db:push
    ```
 
-6. **Open the application**
+4. **Start development servers**
 
-   * Frontend: [http://localhost:3000](http://localhost:3000)
-   * Backend API: [http://localhost:3001](http://localhost:3001)
-   * Database Studio: [http://localhost:5555](http://localhost:5555) (run `npm run dev:backend -- db:studio`)
+   ```bash
+   npm run dev
+   ```
+
+5. **Database Studio** (optional)
+
+   ```bash
+   npm run dev:backend -- db:studio
+   ```
+
+   Access at [http://localhost:5555](http://localhost:5555)
 
 ## Development
 
 ### Available Scripts
 
+#### Docker Commands
+
+* `docker-compose up` - Start the entire application stack
+* `docker-compose up -d` - Start in detached mode (background)
+* `docker-compose down` - Stop and remove containers
+* `docker-compose logs` - View logs from all services
+* `docker-compose logs backend` - View backend logs only
+
 #### Root Level
 
-* `npm run dev` - Start both frontend and backend in development mode
+* `npm run dev` - Start both frontend and backend in development mode (local)
 * `npm run build` - Build both frontend and backend for production
 * `npm run test` - Run tests for both frontend and backend
 * `npm run lint` - Lint both frontend and backend
 * `npm run format` - Format code with Prettier
-* `npm run docker:up` - Start Docker development environment
-* `npm run docker:down` - Stop Docker development environment
 
 #### Frontend
 
@@ -165,6 +195,32 @@ Run tests for specific workspace:
 ```bash
 npm run test:frontend
 npm run test:backend
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Port conflicts**: Make sure ports 3000, 3001, 5432, and 6379 are available
+2. **Docker permission issues**: On Linux, you may need to run Docker commands with `sudo`
+3. **Database connection issues**: Wait a few seconds for PostgreSQL to fully start before the backend connects
+4. **TMDB API errors**: Verify your API key is correctly set in the environment files
+
+### Useful Commands
+
+```bash
+# View running containers
+docker ps
+
+# Restart a specific service
+docker-compose restart backend
+
+# Rebuild containers after code changes
+docker-compose up --build
+
+# Clean up Docker resources
+docker-compose down -v
+docker system prune
 ```
 
 ## Deployment

@@ -29,13 +29,25 @@ export class DatabaseService {
   }
 
   public async connect(): Promise<void> {
-    try {
-      await prisma.$connect();
-      this.isConnected = true;
-      console.log('✅ Database connected successfully');
-    } catch (error) {
-      console.error('❌ Database connection failed:', error);
-      throw error;
+    const maxRetries = 10;
+    const retryDelay = 2000; // 2 seconds
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await prisma.$connect();
+        this.isConnected = true;
+        console.log('✅ Database connected successfully');
+        return;
+      } catch (error) {
+        console.log(`🔄 Database connection attempt ${attempt}/${maxRetries} failed, retrying in ${retryDelay}ms...`);
+        
+        if (attempt === maxRetries) {
+          console.error('❌ Database connection failed after all retries:', error);
+          throw error;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
     }
   }
 
