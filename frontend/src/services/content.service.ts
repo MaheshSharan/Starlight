@@ -11,12 +11,41 @@ import { PaginatedResponse } from '@/types/api.types';
 class ContentService {
   // Get trending content
   async getTrending(type: 'movie' | 'tv', page: number = 1): Promise<PaginatedResponse<Content>> {
-    return apiService.get<PaginatedResponse<Content>>(`/api/content/trending?type=${type}&page=${page}`);
+    const data = await apiService.get<Content[]>(`/api/content/trending?type=${type}&page=${page}`);
+    
+    // Transform backend response to match expected format
+    return {
+      results: data,
+      page: page,
+      total_pages: Math.ceil(data.length / 20) + page, // Estimate based on typical TMDB response
+      total_results: data.length * page, // Estimate
+    };
   }
 
   // Get popular content
   async getPopular(type: 'movie' | 'tv', page: number = 1): Promise<PaginatedResponse<Content>> {
-    return apiService.get<PaginatedResponse<Content>>(`/api/content/popular?type=${type}&page=${page}`);
+    const data = await apiService.get<Content[]>(`/api/content/popular?type=${type}&page=${page}`);
+    
+    // Transform backend response to match expected format
+    return {
+      results: data,
+      page: page,
+      total_pages: Math.ceil(data.length / 20) + page, // Estimate based on typical TMDB response
+      total_results: data.length * page, // Estimate
+    };
+  }
+
+  // Get top-rated content
+  async getTopRated(type: 'movie' | 'tv', page: number = 1): Promise<PaginatedResponse<Content>> {
+    const data = await apiService.get<Content[]>(`/api/content/top-rated?type=${type}&page=${page}`);
+    
+    // Transform backend response to match expected format
+    return {
+      results: data,
+      page: page,
+      total_pages: Math.ceil(data.length / 20) + page, // Estimate based on typical TMDB response
+      total_results: data.length * page, // Estimate
+    };
   }
 
   // Get content details
@@ -52,20 +81,33 @@ class ContentService {
 
   // Get similar content
   async getSimilar(type: 'movie' | 'tv', id: number, page: number = 1): Promise<PaginatedResponse<Content>> {
-    return apiService.get<PaginatedResponse<Content>>(`/api/content/${type}/${id}/similar?page=${page}`);
+    const data = await apiService.get<Content[]>(`/api/content/${type}/${id}/similar?page=${page}`);
+    
+    return {
+      results: data,
+      page: page,
+      total_pages: Math.ceil(data.length / 20) + page,
+      total_results: data.length * page,
+    };
   }
 
   // Get recommendations
   async getRecommendations(type: 'movie' | 'tv', id: number, page: number = 1): Promise<PaginatedResponse<Content>> {
-    return apiService.get<PaginatedResponse<Content>>(`/api/content/${type}/${id}/recommendations?page=${page}`);
+    const data = await apiService.get<Content[]>(`/api/content/${type}/${id}/recommendations?page=${page}`);
+    
+    return {
+      results: data,
+      page: page,
+      total_pages: Math.ceil(data.length / 20) + page,
+      total_results: data.length * page,
+    };
   }
 
   // Utility methods
   getImageUrl(path: string | null, size: 'w200' | 'w300' | 'w500' | 'w780' | 'original' = 'w500'): string {
     if (!path) return '/placeholder-image.jpg';
-    // Image URLs should be provided by our backend API, not constructed on frontend
-    // The backend will handle external image URL construction and potentially proxy/cache images
-    return `/api/images/${size}${path}`;
+    // For now, use TMDB URLs directly until backend image proxy is implemented
+    return `https://image.tmdb.org/t/p/${size}${path}`;
   }
 
   getTitle(content: Content): string {

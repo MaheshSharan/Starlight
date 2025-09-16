@@ -1,60 +1,105 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { Logo } from '../ui';
+import { SearchBar } from '../search';
 
 function Header() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
+
+
+
+
+  const MenuIcon = () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+
+  const CloseIcon = () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
 
   return (
-    <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+    <header className="bg-black/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">S</span>
-            </div>
-            <span className="text-xl font-bold text-white">Starlight</span>
+          <Link to="/" className="flex-shrink-0">
+            <Logo 
+              size="md" 
+              showText={true}
+              textClassName="hidden sm:block"
+            />
           </Link>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-8">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search movies and TV shows..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-          </form>
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <SearchBar
+              placeholder="Search movies and TV shows..."
+              showSuggestions={true}
+              className="w-full"
+            />
+          </div>
 
-          {/* Navigation */}
-          <nav className="flex items-center space-x-6">
-            <Link to="/" className="text-gray-300 hover:text-white transition-colors">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link 
+              to="/" 
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
               Home
             </Link>
-            <Link to="/search" className="text-gray-300 hover:text-white transition-colors">
+            <Link 
+              to="/search" 
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
               Browse
             </Link>
           </nav>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden text-gray-300 hover:text-white transition-colors"
+          >
+            {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-800 py-4">
+            {/* Mobile Search */}
+            <div className="mb-4">
+              <SearchBar
+                placeholder="Search movies and TV shows..."
+                showSuggestions={false}
+                className="w-full"
+              />
+            </div>
+
+            {/* Mobile Navigation */}
+            <nav className="flex flex-col space-y-3">
+              <Link 
+                to="/" 
+                className="text-gray-300 hover:text-white transition-colors font-medium py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link 
+                to="/search" 
+                className="text-gray-300 hover:text-white transition-colors font-medium py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Browse
+              </Link>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

@@ -42,17 +42,30 @@ export class ContentService implements IContentService {
       const cachedData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (cachedData) {
         console.log(`📦 Cache hit for trending ${type}, page ${page}`);
-        return cachedData.results;
+        // Ensure cached data has media_type for consistency
+        const resultsWithMediaType = cachedData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
 
       // Fallback to API
       console.log(`🌐 Cache miss, fetching trending ${type} from TMDB API`);
       const apiData = await this.tmdbService.getTrending(type, timeWindow, page);
       
-      // Cache the result
-      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.TRENDING });
+      // Add media_type to results since TMDB trending includes it, but ensure consistency
+      const resultsWithMediaType = apiData.results.map((item: any) => ({
+        ...item,
+        media_type: item.media_type || type // Use existing media_type or fallback to endpoint type
+      }));
       
-      return apiData.results;
+      const processedData = { ...apiData, results: resultsWithMediaType };
+      
+      // Cache the result
+      await this.cacheService.setWithOptions(cacheKey, processedData, { ttl: CACHE_TTL.TRENDING });
+      
+      return resultsWithMediaType;
     } catch (error) {
       console.error(`❌ Error fetching trending ${type}:`, error);
       
@@ -60,7 +73,12 @@ export class ContentService implements IContentService {
       const staleData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (staleData) {
         console.log(`⚠️ Returning stale cache data for trending ${type}`);
-        return staleData.results;
+        // Ensure stale data has media_type for consistency
+        const resultsWithMediaType = staleData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
       
       throw error;
@@ -80,17 +98,30 @@ export class ContentService implements IContentService {
       const cachedData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (cachedData) {
         console.log(`📦 Cache hit for popular ${type}, page ${page}`);
-        return cachedData.results;
+        // Ensure cached data has media_type for consistency
+        const resultsWithMediaType = cachedData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
 
       // Fallback to API
       console.log(`🌐 Cache miss, fetching popular ${type} from TMDB API`);
       const apiData = await this.tmdbService.getPopular(type, page);
       
-      // Cache the result
-      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.POPULAR });
+      // Add media_type to results since TMDB popular endpoints don't include it
+      const resultsWithMediaType = apiData.results.map((item: any) => ({
+        ...item,
+        media_type: type
+      }));
       
-      return apiData.results;
+      const processedData = { ...apiData, results: resultsWithMediaType };
+      
+      // Cache the result
+      await this.cacheService.setWithOptions(cacheKey, processedData, { ttl: CACHE_TTL.POPULAR });
+      
+      return resultsWithMediaType;
     } catch (error) {
       console.error(`❌ Error fetching popular ${type}:`, error);
       
@@ -98,7 +129,12 @@ export class ContentService implements IContentService {
       const staleData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (staleData) {
         console.log(`⚠️ Returning stale cache data for popular ${type}`);
-        return staleData.results;
+        // Ensure stale data has media_type for consistency
+        const resultsWithMediaType = staleData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
       
       throw error;
@@ -118,17 +154,30 @@ export class ContentService implements IContentService {
       const cachedData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (cachedData) {
         console.log(`📦 Cache hit for top rated ${type}, page ${page}`);
-        return cachedData.results;
+        // Ensure cached data has media_type for consistency
+        const resultsWithMediaType = cachedData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
 
       // Fallback to API
       console.log(`🌐 Cache miss, fetching top rated ${type} from TMDB API`);
       const apiData = await this.tmdbService.getTopRated(type, page);
       
-      // Cache the result
-      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.TOP_RATED });
+      // Add media_type to results since TMDB top_rated endpoints don't include it
+      const resultsWithMediaType = apiData.results.map((item: any) => ({
+        ...item,
+        media_type: type
+      }));
       
-      return apiData.results;
+      const processedData = { ...apiData, results: resultsWithMediaType };
+      
+      // Cache the result
+      await this.cacheService.setWithOptions(cacheKey, processedData, { ttl: CACHE_TTL.TOP_RATED });
+      
+      return resultsWithMediaType;
     } catch (error) {
       console.error(`❌ Error fetching top rated ${type}:`, error);
       
@@ -136,7 +185,12 @@ export class ContentService implements IContentService {
       const staleData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (staleData) {
         console.log(`⚠️ Returning stale cache data for top rated ${type}`);
-        return staleData.results;
+        // Ensure stale data has media_type for consistency
+        const resultsWithMediaType = staleData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
       
       throw error;
@@ -193,17 +247,30 @@ export class ContentService implements IContentService {
       const cachedData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (cachedData) {
         console.log(`📦 Cache hit for similar ${type}, ID: ${id}`);
-        return cachedData.results;
+        // Ensure cached data has media_type for consistency
+        const resultsWithMediaType = cachedData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
 
       // Fallback to API
       console.log(`🌐 Cache miss, fetching similar ${type} from TMDB API`);
       const apiData = await this.tmdbService.getSimilar(type, id, page);
       
-      // Cache the result
-      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.CONTENT_SIMILAR });
+      // Add media_type to results since TMDB similar endpoints don't include it
+      const resultsWithMediaType = apiData.results.map((item: any) => ({
+        ...item,
+        media_type: type
+      }));
       
-      return apiData.results;
+      const processedData = { ...apiData, results: resultsWithMediaType };
+      
+      // Cache the result
+      await this.cacheService.setWithOptions(cacheKey, processedData, { ttl: CACHE_TTL.CONTENT_SIMILAR });
+      
+      return resultsWithMediaType;
     } catch (error) {
       console.error(`❌ Error fetching similar ${type} for ID ${id}:`, error);
       
@@ -211,7 +278,12 @@ export class ContentService implements IContentService {
       const staleData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (staleData) {
         console.log(`⚠️ Returning stale cache data for similar ${type}, ID: ${id}`);
-        return staleData.results;
+        // Ensure stale data has media_type for consistency
+        const resultsWithMediaType = staleData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
       
       throw error;
@@ -229,17 +301,30 @@ export class ContentService implements IContentService {
       const cachedData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (cachedData) {
         console.log(`📦 Cache hit for recommendations ${type}, ID: ${id}`);
-        return cachedData.results;
+        // Ensure cached data has media_type for consistency
+        const resultsWithMediaType = cachedData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
 
       // Fallback to API
       console.log(`🌐 Cache miss, fetching recommendations ${type} from TMDB API`);
       const apiData = await this.tmdbService.getRecommendations(type, id, page);
       
-      // Cache the result
-      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.CONTENT_RECOMMENDATIONS });
+      // Add media_type to results since TMDB recommendations endpoints don't include it
+      const resultsWithMediaType = apiData.results.map((item: any) => ({
+        ...item,
+        media_type: type
+      }));
       
-      return apiData.results;
+      const processedData = { ...apiData, results: resultsWithMediaType };
+      
+      // Cache the result
+      await this.cacheService.setWithOptions(cacheKey, processedData, { ttl: CACHE_TTL.CONTENT_RECOMMENDATIONS });
+      
+      return resultsWithMediaType;
     } catch (error) {
       console.error(`❌ Error fetching recommendations ${type} for ID ${id}:`, error);
       
@@ -247,7 +332,12 @@ export class ContentService implements IContentService {
       const staleData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (staleData) {
         console.log(`⚠️ Returning stale cache data for recommendations ${type}, ID: ${id}`);
-        return staleData.results;
+        // Ensure stale data has media_type for consistency
+        const resultsWithMediaType = staleData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
       
       throw error;
@@ -267,17 +357,30 @@ export class ContentService implements IContentService {
       const cachedData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (cachedData) {
         console.log(`📦 Cache hit for discover ${type}`);
-        return cachedData.results;
+        // Ensure cached data has media_type for consistency
+        const resultsWithMediaType = cachedData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
 
       // Fallback to API
       console.log(`🌐 Cache miss, discovering ${type} from TMDB API`);
       const apiData = await this.tmdbService.discover(type, params);
       
-      // Cache the result with shorter TTL for discover queries
-      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.SEARCH_RESULTS });
+      // Add media_type to results since TMDB discover endpoints don't include it
+      const resultsWithMediaType = apiData.results.map((item: any) => ({
+        ...item,
+        media_type: type
+      }));
       
-      return apiData.results;
+      const processedData = { ...apiData, results: resultsWithMediaType };
+      
+      // Cache the result with shorter TTL for discover queries
+      await this.cacheService.setWithOptions(cacheKey, processedData, { ttl: CACHE_TTL.SEARCH_RESULTS });
+      
+      return resultsWithMediaType;
     } catch (error) {
       console.error(`❌ Error discovering ${type}:`, error);
       
@@ -285,7 +388,12 @@ export class ContentService implements IContentService {
       const staleData = await this.cacheService.getWithOptions<TMDBResponse<Content>>(cacheKey);
       if (staleData) {
         console.log(`⚠️ Returning stale cache data for discover ${type}`);
-        return staleData.results;
+        // Ensure stale data has media_type for consistency
+        const resultsWithMediaType = staleData.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        return resultsWithMediaType;
       }
       
       throw error;

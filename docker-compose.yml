@@ -58,7 +58,7 @@ services:
       dockerfile: Dockerfile
     container_name: starlight-frontend
     environment:
-      VITE_API_URL: http://localhost:3001/api
+      VITE_API_URL: http://localhost:3001
     ports:
       - "3000:3000"
     volumes:

@@ -55,12 +55,18 @@ export class SearchController {
         year: year ? parseInt(year as string, 10) : undefined,
       };
 
+      // Combine sort_by and sort_order if provided separately
+      let combinedSortBy = sort_by as string;
+      if (sort_by && sort_order && !(sort_by as string).includes('.')) {
+        combinedSortBy = `${sort_by}.${sort_order}`;
+      }
+
       // Build filters for advanced search
       const filters: SearchFilters = {
         type: type as ContentType,
         genre: genre ? (genre as string).split(',').map(g => parseInt(g, 10)) : undefined,
         rating: rating ? parseFloat(rating as string) : undefined,
-        sort_by: sort_by as any,
+        sort_by: combinedSortBy as any,
         sort_order: sort_order as any,
         include_adult: searchParams.include_adult,
         region: searchParams.region,

@@ -17,8 +17,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
     // Validate search query (required for most endpoints except popular-queries)
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       throw new AppError(
-        'VALIDATION_ERROR', 
-        'Search query (q) is required and must be a non-empty string', 
+        'VALIDATION_ERROR',
+        'Search query (q) is required and must be a non-empty string',
         400
       );
     }
@@ -26,8 +26,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
     // Validate query length
     if (query.length > 500) {
       throw new AppError(
-        'VALIDATION_ERROR', 
-        'Search query must be less than 500 characters', 
+        'VALIDATION_ERROR',
+        'Search query must be less than 500 characters',
         400
       );
     }
@@ -37,8 +37,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
       const pageNum = parseInt(page as string, 10);
       if (isNaN(pageNum) || pageNum < 1 || pageNum > 1000) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Page must be a number between 1 and 1000', 
+          'VALIDATION_ERROR',
+          'Page must be a number between 1 and 1000',
           400
         );
       }
@@ -47,21 +47,21 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
     // Validate include_adult if provided
     if (include_adult && include_adult !== 'true' && include_adult !== 'false') {
       throw new AppError(
-        'VALIDATION_ERROR', 
-        'include_adult must be either "true" or "false"', 
+        'VALIDATION_ERROR',
+        'include_adult must be either "true" or "false"',
         400
       );
     }
 
     // Validate year parameters if provided
     const currentYear = new Date().getFullYear();
-    
+
     if (year) {
       const yearNum = parseInt(year as string, 10);
       if (isNaN(yearNum) || yearNum < 1900 || yearNum > currentYear + 5) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          `Year must be a number between 1900 and ${currentYear + 5}`, 
+          'VALIDATION_ERROR',
+          `Year must be a number between 1900 and ${currentYear + 5}`,
           400
         );
       }
@@ -71,8 +71,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
       const yearNum = parseInt(primary_release_year as string, 10);
       if (isNaN(yearNum) || yearNum < 1900 || yearNum > currentYear + 5) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          `Primary release year must be a number between 1900 and ${currentYear + 5}`, 
+          'VALIDATION_ERROR',
+          `Primary release year must be a number between 1900 and ${currentYear + 5}`,
           400
         );
       }
@@ -82,8 +82,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
       const yearNum = parseInt(first_air_date_year as string, 10);
       if (isNaN(yearNum) || yearNum < 1900 || yearNum > currentYear + 5) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          `First air date year must be a number between 1900 and ${currentYear + 5}`, 
+          'VALIDATION_ERROR',
+          `First air date year must be a number between 1900 and ${currentYear + 5}`,
           400
         );
       }
@@ -94,8 +94,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
       const limitNum = parseInt(limit as string, 10);
       if (isNaN(limitNum) || limitNum < 1 || limitNum > 50) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Limit must be a number between 1 and 50', 
+          'VALIDATION_ERROR',
+          'Limit must be a number between 1 and 50',
           400
         );
       }
@@ -104,8 +104,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
     // Validate content type if provided
     if (type && type !== 'movie' && type !== 'tv') {
       throw new AppError(
-        'VALIDATION_ERROR', 
-        'Content type must be either "movie" or "tv"', 
+        'VALIDATION_ERROR',
+        'Content type must be either "movie" or "tv"',
         400
       );
     }
@@ -117,8 +117,8 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
         const id = parseInt(genreId.trim(), 10);
         if (isNaN(id) || id < 1) {
           throw new AppError(
-            'VALIDATION_ERROR', 
-            'Genre IDs must be positive numbers separated by commas', 
+            'VALIDATION_ERROR',
+            'Genre IDs must be positive numbers separated by commas',
             400
           );
         }
@@ -130,40 +130,54 @@ export const validateSearchQuery = (req: Request, res: Response, next: NextFunct
       const ratingNum = parseFloat(rating as string);
       if (isNaN(ratingNum) || ratingNum < 0 || ratingNum > 10) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Rating must be a number between 0 and 10', 
+          'VALIDATION_ERROR',
+          'Rating must be a number between 0 and 10',
           400
         );
       }
     }
 
-    // Validate sort_by if provided
+    // Validate sort_by and sort_order
     if (sort_by) {
-      const validSortOptions = [
-        'popularity.desc', 'popularity.asc',
-        'release_date.desc', 'release_date.asc',
-        'revenue.desc', 'revenue.asc',
-        'primary_release_date.desc', 'primary_release_date.asc',
-        'original_title.desc', 'original_title.asc',
-        'vote_average.desc', 'vote_average.asc',
-        'vote_count.desc', 'vote_count.asc',
-        'first_air_date.desc', 'first_air_date.asc'
-      ];
+      const validSortFields = ['popularity', 'release_date', 'revenue', 'primary_release_date', 'original_title', 'vote_average', 'vote_count', 'first_air_date'];
 
-      if (!validSortOptions.includes(sort_by as string)) {
-        throw new AppError(
-          'VALIDATION_ERROR', 
-          `Invalid sort option. Valid options are: ${validSortOptions.join(', ')}`, 
-          400
-        );
+      // Check if sort_by contains a dot (combined format like 'popularity.desc')
+      if ((sort_by as string).includes('.')) {
+        const validSortOptions = [
+          'popularity.desc', 'popularity.asc',
+          'release_date.desc', 'release_date.asc',
+          'revenue.desc', 'revenue.asc',
+          'primary_release_date.desc', 'primary_release_date.asc',
+          'original_title.desc', 'original_title.asc',
+          'vote_average.desc', 'vote_average.asc',
+          'vote_count.desc', 'vote_count.asc',
+          'first_air_date.desc', 'first_air_date.asc'
+        ];
+
+        if (!validSortOptions.includes(sort_by as string)) {
+          throw new AppError(
+            'VALIDATION_ERROR',
+            `Invalid sort option. Valid options are: ${validSortOptions.join(', ')}`,
+            400
+          );
+        }
+      } else {
+        // Separate sort_by and sort_order format
+        if (!validSortFields.includes(sort_by as string)) {
+          throw new AppError(
+            'VALIDATION_ERROR',
+            `Invalid sort field. Valid fields are: ${validSortFields.join(', ')}`,
+            400
+          );
+        }
       }
     }
 
     // Validate sort_order if provided
     if (sort_order && sort_order !== 'asc' && sort_order !== 'desc') {
       throw new AppError(
-        'VALIDATION_ERROR', 
-        'Sort order must be either "asc" or "desc"', 
+        'VALIDATION_ERROR',
+        'Sort order must be either "asc" or "desc"',
         400
       );
     }
@@ -188,8 +202,8 @@ export const validateAdvancedSearch = (req: Request, res: Response, next: NextFu
         for (const genreId of filters.genre) {
           if (typeof genreId !== 'number' || genreId < 1) {
             throw new AppError(
-              'VALIDATION_ERROR', 
-              'Genre IDs must be positive numbers', 
+              'VALIDATION_ERROR',
+              'Genre IDs must be positive numbers',
               400
             );
           }
@@ -199,16 +213,16 @@ export const validateAdvancedSearch = (req: Request, res: Response, next: NextFu
       // Validate rating range
       if (filters.vote_average_gte && (typeof filters.vote_average_gte !== 'number' || filters.vote_average_gte < 0 || filters.vote_average_gte > 10)) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Minimum vote average must be a number between 0 and 10', 
+          'VALIDATION_ERROR',
+          'Minimum vote average must be a number between 0 and 10',
           400
         );
       }
 
       if (filters.vote_average_lte && (typeof filters.vote_average_lte !== 'number' || filters.vote_average_lte < 0 || filters.vote_average_lte > 10)) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Maximum vote average must be a number between 0 and 10', 
+          'VALIDATION_ERROR',
+          'Maximum vote average must be a number between 0 and 10',
           400
         );
       }
@@ -216,8 +230,8 @@ export const validateAdvancedSearch = (req: Request, res: Response, next: NextFu
       // Validate vote count
       if (filters.vote_count_gte && (typeof filters.vote_count_gte !== 'number' || filters.vote_count_gte < 0)) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Minimum vote count must be a non-negative number', 
+          'VALIDATION_ERROR',
+          'Minimum vote count must be a non-negative number',
           400
         );
       }
@@ -225,16 +239,16 @@ export const validateAdvancedSearch = (req: Request, res: Response, next: NextFu
       // Validate runtime range
       if (filters.runtime_gte && (typeof filters.runtime_gte !== 'number' || filters.runtime_gte < 0)) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Minimum runtime must be a non-negative number', 
+          'VALIDATION_ERROR',
+          'Minimum runtime must be a non-negative number',
           400
         );
       }
 
       if (filters.runtime_lte && (typeof filters.runtime_lte !== 'number' || filters.runtime_lte < 0)) {
         throw new AppError(
-          'VALIDATION_ERROR', 
-          'Maximum runtime must be a non-negative number', 
+          'VALIDATION_ERROR',
+          'Maximum runtime must be a non-negative number',
           400
         );
       }
