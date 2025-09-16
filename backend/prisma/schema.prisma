@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ContentCache {
+  id         Int      @id @default(autoincrement())
+  tmdbId     Int      @map("tmdb_id")
+  mediaType  String   @map("media_type") @db.VarChar(10)
+  data       Json
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  expiresAt  DateTime @map("expires_at")
+
+  @@unique([tmdbId, mediaType])
+  @@index([expiresAt])
+  @@index([tmdbId, mediaType])
+  @@map("content_cache")
+}
+
+model SearchAnalytics {
+  id           Int      @id @default(autoincrement())
+  query        String   @db.VarChar(255)
+  filters      Json?
+  resultsCount Int?     @map("results_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([query])
+  @@map("search_analytics")
+}
+
+model ContentPopularity {
+  id         Int      @id @default(autoincrement())
+  tmdbId     Int      @map("tmdb_id")
+  mediaType  String   @map("media_type") @db.VarChar(10)
+  viewCount  Int      @default(0) @map("view_count")
+  lastViewed DateTime @default(now()) @map("last_viewed")
+
+  @@unique([tmdbId, mediaType])
+  @@index([viewCount(sort: Desc)])
+  @@map("content_popularity")
+}
