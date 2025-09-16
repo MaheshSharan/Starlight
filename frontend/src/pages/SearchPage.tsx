@@ -4,6 +4,7 @@ import { SearchBar, SearchFilters, SearchResults } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { SearchFilters as SearchFiltersType, Content } from '@/types/content.types';
 import { cn } from '@/utils/cn.utils';
+import { createContentUrl } from '@/utils/slug.utils';
 
 function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -120,7 +121,7 @@ function SearchPage() {
 
   // Handle content click
   const handleContentClick = (content: Content) => {
-    navigate(`/content/${content.media_type}/${content.id}`);
+    navigate(createContentUrl(content));
   };
 
   // Clear all filters

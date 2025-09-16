@@ -24,6 +24,8 @@ export interface ContentDetails extends Content {
   runtime?: number; // For movies
   number_of_seasons?: number; // For TV shows
   number_of_episodes?: number; // For TV shows
+  seasons?: Season[]; // For TV shows
+  episode_run_time?: number[]; // For TV shows
   production_companies: ProductionCompany[];
   production_countries: ProductionCountry[];
   spoken_languages: SpokenLanguage[];
@@ -35,6 +37,17 @@ export interface ContentDetails extends Content {
   budget?: number;
   revenue?: number;
   status: string;
+  // Additional TV show specific fields
+  created_by?: Array<{
+    id: number;
+    name: string;
+    profile_path: string | null;
+  }>;
+  last_air_date?: string;
+  next_episode_to_air?: Episode | null;
+  last_episode_to_air?: Episode | null;
+  in_production?: boolean;
+  type?: string;
 }
 
 export interface Genre {
@@ -117,4 +130,27 @@ export interface PlayerData {
   content: ContentDetails;
   sources: StreamSource[];
   subtitles: Subtitle[];
+}
+
+// Season interface for TV shows
+export interface Season {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  season_number: number;
+  episode_count: number;
+  air_date: string | null;
+}
+
+// Episode interface for TV shows
+export interface Episode {
+  id: number;
+  name: string;
+  overview: string;
+  still_path: string | null;
+  episode_number: number;
+  season_number: number;
+  air_date: string | null;
+  vote_average: number;
 }

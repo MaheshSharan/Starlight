@@ -5,6 +5,7 @@ import ContentPoster from './ContentPoster';
 import HoverOverlay from './HoverOverlay';
 import { useHover } from '../../contexts/HoverContext';
 import { cn } from '../../utils/cn.utils';
+import { createContentUrl } from '../../utils/slug.utils';
 
 interface ContentCardProps {
   content: Content;
@@ -220,7 +221,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
 
   // Otherwise, wrap in Link for navigation
   return (
-    <Link to={`/content/${content.media_type}/${content.id}`}>
+    <Link to={createContentUrl(content)}>
       <CardContent />
     </Link>
   );

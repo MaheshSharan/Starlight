@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useContentStore } from '../stores/content.store';
 import { useContent } from '../hooks/useContent';
 import { Content } from '../types/content.types';
+import { createContentUrl } from '../utils/slug.utils';
 import { ContentGrid, HeroSection } from '../components/content';
 import { Button } from '../components/ui';
 
@@ -45,7 +46,7 @@ function HomePage() {
   }, [fetchTrending, fetchPopular, fetchTopRated]);
 
   const handleContentClick = (content: Content) => {
-    navigate(`/content/${content.media_type}/${content.id}`);
+    navigate(createContentUrl(content));
   };
 
   const handleViewAll = (category: string, type: 'movie' | 'tv') => {
