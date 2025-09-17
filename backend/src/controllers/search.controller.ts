@@ -82,11 +82,8 @@ export class SearchController {
 
       const response: APIResponse = {
         success: true,
-        data: searchResult.results,
+        data: searchResult,
         meta: {
-          page: searchResult.page,
-          totalPages: searchResult.total_pages,
-          totalResults: searchResult.total_results,
           query: searchResult.query,
           filters: searchResult.filters,
         },
@@ -139,11 +136,8 @@ export class SearchController {
 
       const response: APIResponse = {
         success: true,
-        data: searchResult.results,
+        data: searchResult,
         meta: {
-          page: searchResult.page,
-          totalPages: searchResult.total_pages,
-          totalResults: searchResult.total_results,
           query: searchResult.query,
           filters: searchResult.filters,
         },
@@ -192,11 +186,8 @@ export class SearchController {
 
       const response: APIResponse = {
         success: true,
-        data: searchResult.results,
+        data: searchResult,
         meta: {
-          page: searchResult.page,
-          totalPages: searchResult.total_pages,
-          totalResults: searchResult.total_results,
           query: searchResult.query,
           filters: searchResult.filters,
         },

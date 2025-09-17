@@ -121,7 +121,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   }, [localFilters]);
 
   return (
-    <div className={cn('bg-gray-800/50 rounded-lg border border-gray-700', className)}>
+    <div className={cn('bg-gray-900/50 rounded-lg border border-gray-700', className)}>
       {/* Filter Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center space-x-3">

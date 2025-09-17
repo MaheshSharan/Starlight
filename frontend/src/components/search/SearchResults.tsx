@@ -116,22 +116,34 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       )}
 
       {/* Search Results Grid */}
-      <ContentGrid
-        content={results}
-        loading={loading}
-        error={error}
-        cardSize="md"
-        columns={{
-          mobile: 2,
-          tablet: 3,
-          desktop: 4,
-        }}
-        showDetails={true}
-        onContentClick={onContentClick}
-        emptyMessage={getEmptyMessage()}
-        loadingCount={12}
-        className="min-h-[400px]"
-      />
+      {!loading && !error && (!results || results.length === 0) ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-24 h-24 mx-auto mb-6 text-gray-600">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-medium text-white mb-2">No Results Found</h3>
+          <p className="text-gray-400 max-w-md">{getEmptyMessage()}</p>
+        </div>
+      ) : (
+        <ContentGrid
+          content={results}
+          loading={loading}
+          error={error}
+          cardSize="md"
+          columns={{
+            mobile: 2,
+            tablet: 3,
+            desktop: 4,
+          }}
+          showDetails={false}
+          onContentClick={onContentClick}
+          emptyMessage={getEmptyMessage()}
+          loadingCount={12}
+          className="min-h-[400px]"
+        />
+      )}
 
       {/* Pagination */}
       {showPagination && !loading && !error && totalPages > 1 && (
@@ -201,10 +213,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {loading && 'Loading search results...'}
         {error && `Error loading results: ${error}`}
-        {!loading && !error && results.length > 0 && (
+        {!loading && !error && results && results.length > 0 && (
           `Showing ${results.length} of ${totalResults} results${query ? ` for ${query}` : ''}`
         )}
-        {!loading && !error && results.length === 0 && (
+        {!loading && !error && (!results || results.length === 0) && (
           `No results found${query ? ` for ${query}` : ''}`
         )}
       </div>

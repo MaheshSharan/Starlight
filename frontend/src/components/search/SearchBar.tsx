@@ -4,6 +4,9 @@ import { cn } from '@/utils/cn.utils';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useQuery } from '@tanstack/react-query';
 import { apiService } from '@/services/api.service';
+import { Content } from '@/types/content.types';
+import { contentService } from '@/services/content.service';
+import { createContentUrl } from '@/utils/slug.utils';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -15,10 +18,7 @@ interface SearchBarProps {
   onChange?: (value: string) => void;
 }
 
-interface SearchSuggestion {
-  query: string;
-  count?: number;
-}
+// Remove SearchSuggestion interface - we'll use Content objects directly
 
 const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Search movies and TV shows...",
@@ -46,7 +46,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       if (!debouncedQuery.trim() || debouncedQuery.length < 2) return [];
       
       try {
-        const response = await apiService.get<SearchSuggestion[]>(
+        const response = await apiService.get<Content[]>(
           `/api/search/suggestions?q=${encodeURIComponent(debouncedQuery)}&limit=5`
         );
         return response;
@@ -89,30 +89,35 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   // Handle suggestion click
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
+  const handleSuggestionClick = (content: Content) => {
+    const suggestionText = content.title || content.name || '';
+    setQuery(suggestionText);
     setShowDropdown(false);
     
     if (controlledOnChange) {
-      controlledOnChange(suggestion);
+      controlledOnChange(suggestionText);
     }
     
-    if (onSearch) {
-      onSearch(suggestion);
-    } else {
-      navigate(`/search?q=${encodeURIComponent(suggestion)}`);
-    }
+    // Navigate directly to content page instead of search page
+    const contentForUrl = {
+      ...content,
+      media_type: content.media_type || (content.title ? 'movie' : 'tv')
+    };
+    navigate(createContentUrl(contentForUrl));
   };
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showDropdown || suggestions.length === 0) return;
 
+    const maxIndex = Math.min(suggestions.length, 5) - 1; // Account for "View all results" option
+    const totalOptions = Math.min(suggestions.length, 5) + (suggestions.length > 0 ? 1 : 0); // +1 for "View all results"
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
         setSelectedIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : prev
+          prev < totalOptions - 1 ? prev + 1 : prev
         );
         break;
       case 'ArrowUp':
@@ -121,8 +126,19 @@ const SearchBar: React.FC<SearchBarProps> = ({
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-          handleSuggestionClick(suggestions[selectedIndex].query);
+        if (selectedIndex >= 0) {
+          if (selectedIndex <= maxIndex && suggestions[selectedIndex]) {
+            // Click on a suggestion
+            handleSuggestionClick(suggestions[selectedIndex]);
+          } else if (selectedIndex === totalOptions - 1) {
+            // Click on "View all results"
+            setShowDropdown(false);
+            if (onSearch) {
+              onSearch(query);
+            } else {
+              navigate(`/search?q=${encodeURIComponent(query)}`);
+            }
+          }
         } else {
           handleSubmit(e);
         }
@@ -176,7 +192,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             placeholder={placeholder}
             autoFocus={autoFocus}
             className={cn(
-              'w-full px-4 py-3 pl-12 pr-12 text-white bg-gray-800/90 border border-gray-600',
+              'w-full px-4 py-3 pl-12 pr-12 text-white bg-gray-900/90 border border-gray-600',
               'rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500',
               'focus:border-red-500 transition-colors backdrop-blur-sm',
               shouldShowDropdown && 'rounded-b-none border-b-0'
@@ -232,8 +248,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <div
           ref={dropdownRef}
           className={cn(
-            'absolute top-full left-0 right-0 z-50 bg-gray-800/95 border border-gray-600',
-            'border-t-0 rounded-b-lg shadow-xl backdrop-blur-sm max-h-64 overflow-y-auto'
+            'absolute top-full left-0 right-0 z-50 bg-gray-900/95 border border-gray-600',
+            'border-t-0 rounded-b-lg shadow-xl backdrop-blur-sm overflow-hidden'
           )}
         >
           {loadingSuggestions ? (
@@ -245,11 +261,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </div>
           ) : (
             <ul className="py-1">
-              {suggestions.map((suggestion, index) => (
-                <li key={suggestion.query}>
+              {/* Show only first 5 suggestions */}
+              {suggestions.slice(0, 5).map((content, index) => (
+                <li key={`${content.id}-${content.media_type}-${index}`}>
                   <button
                     type="button"
-                    onClick={() => handleSuggestionClick(suggestion.query)}
+                    onClick={() => handleSuggestionClick(content)}
                     className={cn(
                       'w-full px-4 py-3 text-left text-white hover:bg-gray-700/50 transition-colors',
                       'flex items-center justify-between group',
@@ -257,19 +274,70 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     )}
                   >
                     <div className="flex items-center space-x-3">
-                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <span className="text-sm">{suggestion.query}</span>
+                      {/* Poster Image */}
+                      <div className="w-12 h-16 flex-shrink-0 rounded overflow-hidden bg-gray-700">
+                        {content.poster_path ? (
+                          <img
+                            src={contentService.getImageUrl(content.poster_path, 'w200')}
+                            alt={content.title || content.name || 'Poster'}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-500">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Content Info */}
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-sm font-medium text-white truncate">
+                          {content.title || content.name}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {content.media_type === 'movie' ? 'Movie' : 'TV Show'}
+                          {content.release_date && ` • ${new Date(content.release_date).getFullYear()}`}
+                          {content.first_air_date && ` • ${new Date(content.first_air_date).getFullYear()}`}
+                        </span>
+                      </div>
                     </div>
-                    {suggestion.count && (
+                    {content.vote_average && (
                       <span className="text-xs text-gray-500">
-                        {suggestion.count} results
+                        ⭐ {content.vote_average.toFixed(1)}
                       </span>
                     )}
                   </button>
                 </li>
               ))}
+              
+              {/* "View all results" option */}
+              {suggestions.length > 0 && (
+                <li className="border-t border-gray-700">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      if (onSearch) {
+                        onSearch(query);
+                      } else {
+                        navigate(`/search?q=${encodeURIComponent(query)}`);
+                      }
+                    }}
+                    className={cn(
+                      "w-full px-4 py-3 text-left text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors flex items-center space-x-3",
+                      selectedIndex === Math.min(suggestions.length, 5) && 'bg-gray-700/50 text-white'
+                    )}
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span className="text-sm">View all results for "{query}"</span>
+                  </button>
+                </li>
+              )}
             </ul>
           )}
         </div>

@@ -27,6 +27,11 @@ function SearchPage() {
     clearFilters,
   } = useSearch();
 
+  // Scroll to top when component mounts or search params change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [searchParams]);
+
   // Initialize search from URL parameters
   useEffect(() => {
     const urlQuery = searchParams.get('q') || '';
@@ -138,7 +143,7 @@ function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-black">
       <div className="container mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">

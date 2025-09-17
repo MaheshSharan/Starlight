@@ -39,16 +39,23 @@ export function useInfiniteSearch(query: string, filters?: SearchFilters) {
   });
 }
 
-// Hook for search suggestions (mock implementation - would need backend support)
+// Hook for search suggestions
 export function useSearchSuggestions(query: string) {
   return useQuery({
     queryKey: searchKeys.suggestions(query),
     queryFn: async () => {
-      // Mock implementation - in real app this would call a suggestions API
       if (!query.trim()) return [];
       
-      // For now, return empty array - suggestions would be implemented later
-      return [];
+      try {
+        const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query.trim())}&limit=5`);
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        return data.success ? data.data : [];
+      } catch (error) {
+        console.error('Error fetching search suggestions:', error);
+        return [];
+      }
     },
     enabled: !!query.trim() && query.length >= 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
