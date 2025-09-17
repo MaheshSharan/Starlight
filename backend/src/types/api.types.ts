@@ -12,6 +12,9 @@ export interface APIResponse<T = any> {
     count?: number;
     contentType?: string;
     contentId?: number;
+    tvId?: number;
+    seasonNumber?: number;
+    episodeNumber?: number;
   };
   error?: {
     type: string;

@@ -290,6 +290,121 @@ export class ContentController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/content/tv/:id/season/:seasonNumber
+   * Get season details for TV show
+   */
+  async getSeasonDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id, seasonNumber } = req.params;
+
+      const tvId = parseInt(id, 10);
+      const seasonNum = parseInt(seasonNumber, 10);
+
+      // Validate IDs
+      if (isNaN(tvId) || tvId <= 0) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid TV show ID', 400);
+      }
+      
+      if (isNaN(seasonNum) || seasonNum < 0) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid season number', 400);
+      }
+
+      const seasonDetails = await contentService.getSeasonDetails(tvId, seasonNum);
+
+      const response: APIResponse = {
+        success: true,
+        data: seasonDetails,
+        meta: {
+          tvId,
+          seasonNumber: seasonNum,
+        },
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl,
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/content/tv/:id/season/:seasonNumber/episode/:episodeNumber
+   * Get episode details for TV show
+   */
+  async getEpisodeDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id, seasonNumber, episodeNumber } = req.params;
+
+      const tvId = parseInt(id, 10);
+      const seasonNum = parseInt(seasonNumber, 10);
+      const episodeNum = parseInt(episodeNumber, 10);
+
+      // Validate IDs
+      if (isNaN(tvId) || tvId <= 0) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid TV show ID', 400);
+      }
+      
+      if (isNaN(seasonNum) || seasonNum < 0) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid season number', 400);
+      }
+
+      if (isNaN(episodeNum) || episodeNum < 1) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid episode number', 400);
+      }
+
+      const episodeDetails = await contentService.getEpisodeDetails(tvId, seasonNum, episodeNum);
+
+      const response: APIResponse = {
+        success: true,
+        data: episodeDetails,
+        meta: {
+          tvId,
+          seasonNumber: seasonNum,
+          episodeNumber: episodeNum,
+        },
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl,
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/content/genres
+   * Get TMDB genres for the specified media type
+   */
+  async getGenres(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { type = 'movie' } = req.query as { type?: string };
+
+      if (type !== 'movie' && type !== 'tv') {
+        throw new AppError('VALIDATION_ERROR', 'Content type must be either "movie" or "tv"', 400);
+      }
+
+      const genres = await contentService.getGenres(type as ContentType);
+
+      const response: APIResponse = {
+        success: true,
+        data: genres,
+        meta: {
+          contentType: type,
+          count: Array.isArray(genres) ? genres.length : 0,
+        },
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl,
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 // Export singleton instance

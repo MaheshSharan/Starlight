@@ -18,6 +18,9 @@ router.get('/popular', validateContentQuery, contentController.getPopular);
 // GET /api/content/top-rated - Get top-rated content with type filtering
 router.get('/top-rated', validateContentQuery, contentController.getTopRated);
 
+// GET /api/content/genres - Get genres for a media type
+router.get('/genres', contentController.getGenres);
+
 /**
  * Content Details Routes
  * Routes for detailed content information and related content
@@ -34,5 +37,16 @@ router.get('/:type/:id/recommendations', validateContentId, contentController.ge
 
 // GET /api/content/:type/:id/credits - Get content credits
 router.get('/:type/:id/credits', validateContentId, contentController.getContentCredits);
+
+/**
+ * TV Show Season/Episode Routes
+ * Routes for detailed season and episode information
+ */
+
+// GET /api/content/tv/:id/season/:seasonNumber - Get season details
+router.get('/tv/:id/season/:seasonNumber', contentController.getSeasonDetails);
+
+// GET /api/content/tv/:id/season/:seasonNumber/episode/:episodeNumber - Get episode details
+router.get('/tv/:id/season/:seasonNumber/episode/:episodeNumber', contentController.getEpisodeDetails);
 
 export default router;

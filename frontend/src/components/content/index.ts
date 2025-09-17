@@ -4,5 +4,7 @@ export { default as ContentPoster } from './ContentPoster';
 export { default as HeroSection } from './HeroSection';
 export { default as HoverOverlay } from './HoverOverlay';
 export { default as ContentDetails } from './ContentDetails';
-export { default as CastCrew } from './CastCrew';
+export { default as CastCrew } from './CastCrewClean';
 export { default as SimilarContent } from './SimilarContent';
+export { default as SeasonSelector } from './SeasonSelector';
+export { default as EpisodeGrid } from './EpisodeGrid';

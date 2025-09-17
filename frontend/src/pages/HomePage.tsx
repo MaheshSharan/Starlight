@@ -98,14 +98,6 @@ function HomePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Trending Movies</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleViewAll('trending', 'movie')}
-                className="text-red-400 hover:text-red-300"
-              >
-                View All →
-              </Button>
             </div>
             <ContentGrid.Row
               content={trendingMovies.slice(1, 9)} // Skip first item (used in hero)
@@ -121,14 +113,6 @@ function HomePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Popular Movies</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleViewAll('popular', 'movie')}
-                className="text-red-400 hover:text-red-300"
-              >
-                View All →
-              </Button>
             </div>
             <ContentGrid.Row
               content={popularMovies.slice(0, 8)}
@@ -144,14 +128,6 @@ function HomePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Trending TV Shows</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleViewAll('trending', 'tv')}
-                className="text-red-400 hover:text-red-300"
-              >
-                View All →
-              </Button>
             </div>
             <ContentGrid.Row
               content={trendingTvShows.slice(0, 8)}
@@ -167,14 +143,6 @@ function HomePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Popular TV Shows</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleViewAll('popular', 'tv')}
-                className="text-red-400 hover:text-red-300"
-              >
-                View All →
-              </Button>
             </div>
             <ContentGrid.Row
               content={popularTvShows.slice(0, 8)}

@@ -121,8 +121,8 @@ const ContentPoster: React.FC<ContentPosterProps> = ({
         />
       )}
 
-      {/* Gradient overlay for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200" />
+      {/* Gradient overlay for better text readability - removed hover effect to prevent flicker */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
     </div>
   );
 };

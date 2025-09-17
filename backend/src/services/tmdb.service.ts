@@ -291,4 +291,32 @@ export class TMDBService implements ITMDBService {
   async getVideos(mediaType: ContentType, id: number): Promise<any> {
     return this.makeRequest(`/${mediaType}/${id}/videos`);
   }
+
+  /**
+   * Get season details for TV show
+   */
+  async getSeasonDetails(tvId: number, seasonNumber: number): Promise<any> {
+    return this.makeRequest(`/tv/${tvId}/season/${seasonNumber}`);
+  }
+
+  /**
+   * Get episode details for TV show
+   */
+  async getEpisodeDetails(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any> {
+    return this.makeRequest(`/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`);
+  }
+
+  /**
+   * Get episode images
+   */
+  async getEpisodeImages(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any> {
+    return this.makeRequest(`/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/images`);
+  }
+
+  /**
+   * Get episode videos
+   */
+  async getEpisodeVideos(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any> {
+    return this.makeRequest(`/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/videos`);
+  }
 }

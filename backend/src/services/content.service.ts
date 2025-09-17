@@ -218,6 +218,44 @@ export class ContentService implements IContentService {
         'credits,similar,recommendations'
       );
       
+      console.log(`📊 TMDB API Response for ${type} ${id}:`, {
+        hasCredits: !!apiData.credits,
+        hasSimilar: !!apiData.similar,
+        hasRecommendations: !!apiData.recommendations,
+        similarCount: apiData.similar?.results?.length || 0,
+        recommendationsCount: apiData.recommendations?.results?.length || 0
+      });
+      
+      // Flatten similar and recommendations data - extract results arrays
+      if (apiData.similar?.results) {
+        apiData.similar = apiData.similar.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        console.log(`📊 Flattened similar data:`, {
+          count: apiData.similar.length,
+          firstItem: apiData.similar[0]
+        });
+      } else {
+        apiData.similar = [];
+      }
+      
+      if (apiData.recommendations?.results) {
+        apiData.recommendations = apiData.recommendations.results.map((item: any) => ({
+          ...item,
+          media_type: item.media_type || type
+        }));
+        console.log(`📊 Flattened recommendations data:`, {
+          count: apiData.recommendations.length,
+          firstItem: apiData.recommendations[0]
+        });
+      } else {
+        apiData.recommendations = [];
+      }
+      
+      // Ensure media_type is set correctly (TMDB doesn't always include it in details response)
+      apiData.media_type = type;
+      
       // Cache the result
       await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.CONTENT_DETAILS });
       
@@ -464,6 +502,78 @@ export class ContentService implements IContentService {
       const staleData = await this.cacheService.getWithOptions<any>(cacheKey);
       if (staleData) {
         console.log(`⚠️ Returning stale cache data for ${type} credits, ID: ${id}`);
+        return staleData;
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Get season details for TV show with cache-first strategy
+   */
+  async getSeasonDetails(tvId: number, seasonNumber: number): Promise<any> {
+    const cacheKey = `season:${tvId}:${seasonNumber}`;
+
+    try {
+      // Try cache first
+      const cachedData = await this.cacheService.getWithOptions<any>(cacheKey);
+      if (cachedData) {
+        console.log(`📦 Cache hit for TV ${tvId} season ${seasonNumber}`);
+        return cachedData;
+      }
+
+      // Fallback to API
+      console.log(`🌐 Cache miss, fetching TV ${tvId} season ${seasonNumber} from TMDB API`);
+      const apiData = await this.tmdbService.getSeasonDetails(tvId, seasonNumber);
+      
+      // Cache the result
+      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.CONTENT_DETAILS });
+      
+      return apiData;
+    } catch (error) {
+      console.error(`❌ Error fetching season ${seasonNumber} for TV ${tvId}:`, error);
+      
+      // Try to return stale cache data as last resort
+      const staleData = await this.cacheService.getWithOptions<any>(cacheKey);
+      if (staleData) {
+        console.log(`⚠️ Returning stale cache data for TV ${tvId} season ${seasonNumber}`);
+        return staleData;
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Get episode details for TV show with cache-first strategy
+   */
+  async getEpisodeDetails(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any> {
+    const cacheKey = `episode:${tvId}:${seasonNumber}:${episodeNumber}`;
+
+    try {
+      // Try cache first
+      const cachedData = await this.cacheService.getWithOptions<any>(cacheKey);
+      if (cachedData) {
+        console.log(`📦 Cache hit for TV ${tvId} S${seasonNumber}E${episodeNumber}`);
+        return cachedData;
+      }
+
+      // Fallback to API
+      console.log(`🌐 Cache miss, fetching TV ${tvId} S${seasonNumber}E${episodeNumber} from TMDB API`);
+      const apiData = await this.tmdbService.getEpisodeDetails(tvId, seasonNumber, episodeNumber);
+      
+      // Cache the result
+      await this.cacheService.setWithOptions(cacheKey, apiData, { ttl: CACHE_TTL.CONTENT_DETAILS });
+      
+      return apiData;
+    } catch (error) {
+      console.error(`❌ Error fetching episode S${seasonNumber}E${episodeNumber} for TV ${tvId}:`, error);
+      
+      // Try to return stale cache data as last resort
+      const staleData = await this.cacheService.getWithOptions<any>(cacheKey);
+      if (staleData) {
+        console.log(`⚠️ Returning stale cache data for TV ${tvId} S${seasonNumber}E${episodeNumber}`);
         return staleData;
       }
       

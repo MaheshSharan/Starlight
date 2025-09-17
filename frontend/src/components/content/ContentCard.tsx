@@ -1,9 +1,9 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, memo, useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Content } from '../../types/content.types';
 import ContentPoster from './ContentPoster';
 import HoverOverlay from './HoverOverlay';
-import { useHover } from '../../contexts/HoverContext';
+import { HoverContext } from '../../contexts/HoverContext';
 import { cn } from '../../utils/cn.utils';
 import { createContentUrl } from '../../utils/slug.utils';
 
@@ -16,7 +16,7 @@ interface ContentCardProps {
   hoverDelay?: number;
 }
 
-const ContentCard: React.FC<ContentCardProps> = ({
+const ContentCardComponent: React.FC<ContentCardProps> = ({
   content,
   className,
   size = 'md',
@@ -24,8 +24,43 @@ const ContentCard: React.FC<ContentCardProps> = ({
   onClick,
   hoverDelay = 300
 }) => {
-  const { setActiveCard, isCardActive } = useHover();
-  const cardId = `card-${content.id}-${content.media_type}`;
+  // Avoid render thrash on hover by not logging per render
+  
+  // Add try-catch to identify the specific error
+  try {
+    // Validate content object
+    if (!content) {
+      console.error('ContentCard: content is null or undefined');
+      return null;
+    }
+    
+    if (!content.id) {
+      console.error('ContentCard: content missing id:', content);
+      return null;
+    }
+
+    // Handle missing media_type - infer from other fields or set default
+    let mediaType = content.media_type;
+    if (!mediaType) {
+      // Try to infer media_type from available fields
+      if (content.title || content.release_date) {
+        mediaType = 'movie';
+      } else if (content.name || content.first_air_date) {
+        mediaType = 'tv';
+      } else {
+        // Default fallback
+        mediaType = 'movie';
+      }
+      console.warn('ContentCard: media_type missing, inferred as:', mediaType, content);
+    }
+
+    // Check if we're in a HoverProvider context
+    const hoverContext = useContext(HoverContext);
+    const hasHoverProvider = hoverContext !== undefined;
+    
+    const setActiveCard = hasHoverProvider ? hoverContext.setActiveCard : () => {};
+    const isCardActive = hasHoverProvider ? hoverContext.isCardActive : () => false;
+    const cardId = `card-${content.id}-${mediaType}`;
   
   // Simple hover state
   const [showOverlay, setShowOverlay] = useState(false);
@@ -34,8 +69,8 @@ const ContentCard: React.FC<ContentCardProps> = ({
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if this card is the active one
-  const isActive = isCardActive(cardId);
+  // Check if this card is the active one (only if we have hover provider)
+  const isActive = hasHoverProvider ? isCardActive(cardId) : false;
   const sizeConfig = {
     sm: {
       width: 150,
@@ -87,8 +122,10 @@ const ContentCard: React.FC<ContentCardProps> = ({
     }
   }, [isActive]);
 
-  // Hover event handlers
+  // Hover event handlers (only if we have hover provider)
   const handleMouseEnter = useCallback(() => {
+    if (!hasHoverProvider) return;
+    
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
@@ -103,9 +140,11 @@ const ContentCard: React.FC<ContentCardProps> = ({
     hoverTimeoutRef.current = setTimeout(() => {
       setShowOverlay(true);
     }, hoverDelay);
-  }, [cardId, setActiveCard, hoverDelay]);
+  }, [cardId, setActiveCard, hoverDelay, hasHoverProvider]);
 
   const handleMouseLeave = useCallback(() => {
+    if (!hasHoverProvider) return;
+    
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
@@ -115,10 +154,12 @@ const ContentCard: React.FC<ContentCardProps> = ({
       setActiveCard(null);
       setShowOverlay(false);
     }, 100);
-  }, [setActiveCard]);
+  }, [setActiveCard, hasHoverProvider]);
 
-  // Mobile tap handlers
+  // Mobile tap handlers (only if we have hover provider)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!hasHoverProvider) return;
+    
     e.preventDefault();
     
     setActiveCard(cardId);
@@ -129,7 +170,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
       setActiveCard(null);
       setShowOverlay(false);
     }, 3000);
-  }, [cardId, setActiveCard]);
+  }, [cardId, setActiveCard, hasHoverProvider]);
 
   const handleClick = () => {
     if (onClick) {
@@ -137,10 +178,12 @@ const ContentCard: React.FC<ContentCardProps> = ({
     }
   };
 
-  const CardContent = () => (
+  // Memoize the card content to prevent unnecessary re-renders
+  const CardContent = useMemo(() => (
     <div
       className={cn(
-        'group relative cursor-pointer transition-shadow duration-200 ease-out',
+        // Use will-change and translateZ to promote to its own layer and reduce flicker
+        'group relative cursor-pointer transition-shadow duration-200 ease-out will-change-transform',
         className
       )}
       onClick={handleClick}
@@ -149,7 +192,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
       onTouchStart={handleTouchStart}
     >
       {/* Poster Image Container */}
-      <div className="relative">
+      <div className="relative [transform:translateZ(0)]">
         <ContentPoster
           src={imageUrl}
           alt={content.title || content.name || content.original_title || content.original_name || 'Content poster'}
@@ -158,8 +201,8 @@ const ContentCard: React.FC<ContentCardProps> = ({
           className="shadow-lg hover:shadow-xl transition-shadow duration-200 rounded-lg"
         />
         
-        {/* Hover Overlay - Only show when showDetails is false */}
-        {!showDetails && isActive && showOverlay && (
+        {/* Hover Overlay - Only show when showDetails is false and we have hover provider */}
+        {!showDetails && hasHoverProvider && isActive && showOverlay && (
           <HoverOverlay
             content={content}
             visible={true}
@@ -197,7 +240,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
 
           {/* Media Type Badge - Only shown when showDetails is true */}
           <div className="inline-block bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold uppercase">
-            {content.media_type === 'tv' ? 'TV' : 'Movie'}
+            {mediaType === 'tv' ? 'TV' : 'Movie'}
           </div>
 
           {/* Overview (truncated) */}
@@ -212,19 +255,59 @@ const ContentCard: React.FC<ContentCardProps> = ({
         </div>
       )}
     </div>
-  );
+  ), [
+    className, handleClick, handleMouseEnter, handleMouseLeave, handleTouchStart,
+    imageUrl, content, config.width, config.height, showDetails, hasHoverProvider,
+    isActive, showOverlay, size, mediaType, config.titleClass, config.detailsClass
+  ]);
 
   // If we have an onClick handler, don't wrap in Link
   if (onClick) {
-    return <CardContent />;
+    return CardContent;
   }
+
+  // Create content object with correct media_type for URL generation
+  const contentForUrl = {
+    ...content,
+    media_type: mediaType
+  };
 
   // Otherwise, wrap in Link for navigation
   return (
-    <Link to={createContentUrl(content)}>
-      <CardContent />
+    <Link to={createContentUrl(contentForUrl)}>
+      {CardContent}
     </Link>
   );
+  
+  } catch (error) {
+    console.error('ContentCard error:', error, 'Content:', content);
+    return (
+      <div className="w-40 h-60 bg-gray-800 rounded-lg flex items-center justify-center">
+        <p className="text-red-400 text-sm text-center p-2">Error loading content</p>
+      </div>
+    );
+  }
 };
+
+// Memoize to prevent row-wide re-renders on hover of one card
+const ContentCard = memo(ContentCardComponent, (prev, next) => {
+  // Only re-render if content data actually changes, not on hover state changes
+  return (
+    prev.size === next.size &&
+    prev.showDetails === next.showDetails &&
+    prev.className === next.className &&
+    prev.hoverDelay === next.hoverDelay &&
+    prev.onClick === next.onClick &&
+    prev.content?.id === next.content?.id &&
+    prev.content?.media_type === next.content?.media_type &&
+    prev.content?.poster_path === next.content?.poster_path &&
+    prev.content?.vote_average === next.content?.vote_average &&
+    prev.content?.title === next.content?.title &&
+    prev.content?.name === next.content?.name &&
+    prev.content?.release_date === next.content?.release_date &&
+    prev.content?.first_air_date === next.content?.first_air_date &&
+    prev.content?.overview === next.content?.overview
+  );
+});
 
 export default ContentCard;

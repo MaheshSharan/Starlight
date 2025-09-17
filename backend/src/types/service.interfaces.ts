@@ -51,6 +51,10 @@ export interface IContentService {
   
   // Credits
   getCredits(type: ContentType, id: number): Promise<any>;
+
+  // TV Show Season/Episode specific
+  getSeasonDetails(tvId: number, seasonNumber: number): Promise<any>;
+  getEpisodeDetails(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any>;
 }
 
 // Search Service Interface
@@ -173,4 +177,10 @@ export interface ITMDBService {
   
   // Videos
   getVideos(mediaType: ContentType, id: number): Promise<any>;
+
+  // TV Show Season/Episode specific
+  getSeasonDetails(tvId: number, seasonNumber: number): Promise<any>;
+  getEpisodeDetails(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any>;
+  getEpisodeImages(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any>;
+  getEpisodeVideos(tvId: number, seasonNumber: number, episodeNumber: number): Promise<any>;
 }

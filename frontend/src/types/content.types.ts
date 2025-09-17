@@ -153,4 +153,6 @@ export interface Episode {
   season_number: number;
   air_date: string | null;
   vote_average: number;
+  vote_count: number;
+  runtime: number | null;
 }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
 interface HoverContextType {
   activeCardId: string | null;
@@ -6,7 +6,7 @@ interface HoverContextType {
   isCardActive: (cardId: string) => boolean;
 }
 
-const HoverContext = createContext<HoverContextType | undefined>(undefined);
+export const HoverContext = createContext<HoverContextType | undefined>(undefined);
 
 export const HoverProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
@@ -19,8 +19,15 @@ export const HoverProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return activeCardId === cardId;
   }, [activeCardId]);
 
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    activeCardId,
+    setActiveCard,
+    isCardActive
+  }), [activeCardId, setActiveCard, isCardActive]);
+
   return (
-    <HoverContext.Provider value={{ activeCardId, setActiveCard, isCardActive }}>
+    <HoverContext.Provider value={contextValue}>
       {children}
     </HoverContext.Provider>
   );

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ContentDetails as ContentDetailsType } from '@/types/content.types';
 import { contentService } from '@/services/content.service';
-import { ContentDetails, CastCrew, SimilarContent } from '@/components/content';
+import { ContentDetails } from '@/components/content';
 import Loading from '@/components/ui/Loading';
 import Button from '@/components/ui/Button';
 import { parseContentUrl, validateSlug, createContentUrl } from '@/utils/slug.utils';
@@ -14,6 +14,10 @@ function ContentPage() {
   const [content, setContent] = useState<ContentDetailsType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [type, id]);
 
   useEffect(() => {
     const fetchContentDetails = async () => {
@@ -62,6 +66,11 @@ function ContentPage() {
         }
         
         setContent(contentDetails);
+        
+        // Update document title
+        const title = contentService.getTitle(contentDetails);
+        const year = contentService.getReleaseYear(contentDetails);
+        document.title = `${title}${year ? ` (${year})` : ''} - Starlight`;
       } catch (err) {
         console.error('Error fetching content details:', err);
         
@@ -71,6 +80,10 @@ function ContentPage() {
             setError('Content not found. This movie or TV show may have been removed or the ID is incorrect.');
           } else if (err.message.includes('network') || err.message.includes('fetch')) {
             setError('Network error. Please check your connection and try again.');
+          } else if (err.message.includes('timeout')) {
+            setError('Request timed out. Please try again.');
+          } else if (err.message.includes('500')) {
+            setError('Server error. Please try again later.');
           } else {
             setError('Failed to load content details. Please try again later.');
           }
@@ -88,10 +101,10 @@ function ContentPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="text-center">
           <Loading size="lg" />
-          <p className="text-white mt-4 text-lg">Loading content details...</p>
+          <p className="text-white mt-4 text-base sm:text-lg">Loading content details...</p>
         </div>
       </div>
     );
@@ -100,11 +113,11 @@ function ContentPage() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center max-w-md mx-auto">
           <div className="mb-6">
             <svg 
-              className="w-16 h-16 text-red-500 mx-auto mb-4" 
+              className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 mx-auto mb-4" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -116,11 +129,11 @@ function ContentPage() {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" 
               />
             </svg>
-            <h1 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h1>
-            <p className="text-gray-400 mb-6">{error}</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">Oops! Something went wrong</h1>
+            <p className="text-sm sm:text-base text-gray-400 mb-6">{error}</p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button
               variant="primary"
               onClick={() => window.location.reload()}
@@ -144,10 +157,10 @@ function ContentPage() {
   // Content not found (shouldn't happen if API is working correctly)
   if (!content) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <h1 className="text-2xl font-bold text-white mb-2">Content Not Found</h1>
-          <p className="text-gray-400 mb-6">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center max-w-md mx-auto">
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">Content Not Found</h1>
+          <p className="text-sm sm:text-base text-gray-400 mb-6">
             The requested {type} with ID {id} could not be found.
           </p>
           <Button
@@ -167,32 +180,17 @@ function ContentPage() {
       {/* Main Content Details */}
       <ContentDetails content={content} />
       
-      {/* Cast & Crew Section */}
-      {content.credits && (content.credits.cast.length > 0 || content.credits.crew.length > 0) && (
-        <div className="container mx-auto px-4 py-8">
-          <CastCrew credits={content.credits} />
-        </div>
-      )}
-      
-      {/* Similar Content Section */}
-      {(content.similar.length > 0 || content.recommendations.length > 0) && (
-        <div className="container mx-auto px-4 pb-8">
-          <SimilarContent 
-            similar={content.similar} 
-            recommendations={content.recommendations} 
-          />
-        </div>
-      )}
+      {/* Similar content is now rendered inside ContentDetails just like the screenshot layout */}
       
       {/* Back to Top Button */}
-      <div className="container mx-auto px-4 pb-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
         <div className="text-center">
           <Button
             variant="outline"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="border-gray-600 text-white hover:bg-gray-800"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
             </svg>
             Back to Top

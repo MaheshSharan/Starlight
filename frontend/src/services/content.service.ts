@@ -4,7 +4,9 @@ import {
   ContentDetails, 
   SearchResult, 
   SearchFilters, 
-  Genre 
+  Genre,
+  Season,
+  Episode
 } from '@/types/content.types';
 import { PaginatedResponse } from '@/types/api.types';
 
@@ -101,6 +103,16 @@ class ContentService {
       total_pages: Math.ceil(data.length / 20) + page,
       total_results: data.length * page,
     };
+  }
+
+  // Get TV show season details
+  async getSeasonDetails(tvId: number, seasonNumber: number): Promise<Season & { episodes: Episode[] }> {
+    return apiService.get<Season & { episodes: Episode[] }>(`/api/content/tv/${tvId}/season/${seasonNumber}`);
+  }
+
+  // Get TV show episode details
+  async getEpisodeDetails(tvId: number, seasonNumber: number, episodeNumber: number): Promise<Episode> {
+    return apiService.get<Episode>(`/api/content/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`);
   }
 
   // Utility methods

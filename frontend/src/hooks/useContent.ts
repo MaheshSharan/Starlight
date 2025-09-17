@@ -14,6 +14,8 @@ export const contentKeys = {
   genres: (type: 'movie' | 'tv') => [...contentKeys.all, 'genres', type] as const,
   similar: (type: 'movie' | 'tv', id: number) => [...contentKeys.all, 'similar', type, id] as const,
   recommendations: (type: 'movie' | 'tv', id: number) => [...contentKeys.all, 'recommendations', type, id] as const,
+  season: (tvId: number, seasonNumber: number) => [...contentKeys.all, 'season', tvId, seasonNumber] as const,
+  episode: (tvId: number, seasonNumber: number, episodeNumber: number) => [...contentKeys.all, 'episode', tvId, seasonNumber, episodeNumber] as const,
 };
 
 // Main content hook that integrates with Zustand store
@@ -254,5 +256,27 @@ export function useInfinitePopular(type: 'movie' | 'tv') {
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+// Hook for TV show season details
+export function useSeasonDetails(tvId: number, seasonNumber: number, enabled: boolean = true) {
+  return useQuery({
+    queryKey: contentKeys.season(tvId, seasonNumber),
+    queryFn: () => contentService.getSeasonDetails(tvId, seasonNumber),
+    enabled: enabled && !!tvId && !!seasonNumber,
+    staleTime: 30 * 60 * 1000, // 30 minutes - season data doesn't change often
+    gcTime: 60 * 60 * 1000, // 60 minutes
+  });
+}
+
+// Hook for TV show episode details
+export function useEpisodeDetails(tvId: number, seasonNumber: number, episodeNumber: number, enabled: boolean = true) {
+  return useQuery({
+    queryKey: contentKeys.episode(tvId, seasonNumber, episodeNumber),
+    queryFn: () => contentService.getEpisodeDetails(tvId, seasonNumber, episodeNumber),
+    enabled: enabled && !!tvId && !!seasonNumber && !!episodeNumber,
+    staleTime: 30 * 60 * 1000, // 30 minutes - episode data doesn't change often
+    gcTime: 60 * 60 * 1000, // 60 minutes
   });
 }

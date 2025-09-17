@@ -300,11 +300,13 @@ const ContentRow: React.FC<ContentRowProps> = ({
         <HoverProvider>
           <div 
             ref={scrollContainerRef}
-            className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+            className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
             style={{
               // Hide scrollbar on all browsers
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
+              // Add will-change to optimize scrolling performance
+              willChange: 'scroll-position',
             }}
           >
             {content.map((item) => (
